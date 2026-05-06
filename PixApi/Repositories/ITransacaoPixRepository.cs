@@ -8,5 +8,5 @@ namespace PixApi.Repositories;
 
 public interface ITransacaoPixRepository
 {
-    Task SalvarAsync(TransacaoPix transacao, ResultadoTransacao resultado);
+    Task SalvarAsync(TransacaoPix transacao);
 }

@@ -25,8 +25,6 @@ public class TransacaoPixService : ITransacaoPixService
     public async Task<ResultadoTransacao> ProcessarTransacaoAsync(TransacaoPix transacao)
     {
         // Salva a transação no histórico (independente de aprovação ou não)
-        await _transacaoRepository.SalvarAsync(transacao, resultado: null); // Salva sem resultado inicialmente
-
         // Encontra a conta pelo CPF e número da conta.
         var conta = await _contaService.BuscarContaAsync(transacao.Cpf, transacao.NumeroConta);
         if (conta == null)
@@ -49,9 +47,14 @@ public class TransacaoPixService : ITransacaoPixService
             };
         }
 
+        Console.WriteLine($"ANTES: {conta.LimitePIX}");
+        Console.WriteLine($"VALOR: {transacao.Valor}");
         // Desconta o valor autorizado do limite disponível da conta.
         conta.LimitePIX -= transacao.Valor;
+        // Salva a transação no histórico (independente de aprovação ou não)
+        await _transacaoRepository.SalvarAsync(transacao); // Salva sem resultado inicialmente
         await _contaService.AtualizarLimiteAsync(conta.Cpf, conta.NumeroConta, conta.LimitePIX);
+
 
         // Retorna o resultado aprovado.
         return new ResultadoTransacao

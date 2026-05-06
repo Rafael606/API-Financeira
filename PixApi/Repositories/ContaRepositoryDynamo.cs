@@ -38,7 +38,7 @@ public class ContaRepositoryDynamo : IContaRepository
             Cpf = item["CPF"].S,
             NumeroConta = item["NumeroConta"].S,
             AgenciaConta = item["AgenciaConta"].S,
-            LimitePIX = decimal.Parse(item["LimitePIX"].N)
+            LimitePIX = decimal.Parse(item["LimitePIX"].N, CultureInfo.InvariantCulture)
         };
     }
 
