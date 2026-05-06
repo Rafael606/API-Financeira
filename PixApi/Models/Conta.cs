@@ -1,36 +1,25 @@
 using System.ComponentModel.DataAnnotations;
+using Amazon.DynamoDBv2.DataModel;
 
 namespace PixApi.Models;
 
 /// <summary>
 /// Representa uma conta bancária para controle de limite PIX.
 /// </summary>
+[DynamoDBTable("Conta")]
 public class Conta
 {
-    /// <summary>
-    /// CPF do titular da conta.
-    /// </summary>
-    [Required(ErrorMessage = "CPF é obrigatório.")]
-    [StringLength(11, MinimumLength = 11, ErrorMessage = "CPF deve ter 11 dígitos.")]
+    [Required]
+    [DynamoDBHashKey] // PK
     public string Cpf { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Agência da conta.
-    /// </summary>
-    [Required(ErrorMessage = "Agência é obrigatória.")]
-    public string Agencia { get; set; } = string.Empty;
+    // [Required]
+    public string AgenciaConta { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Número da conta.
-    /// </summary>
-    [Required(ErrorMessage = "Número da conta é obrigatório.")]
+    [Required]
     public string NumeroConta { get; set; } = string.Empty;
 
-    /// <summary>
-    /// Limite disponível para transações PIX.
-    /// </summary>
-    [Range(0, double.MaxValue, ErrorMessage = "Limite deve ser maior ou igual a zero.")]
-    public decimal LimiteDisponivel { get; set; }
-}
 
-// Nota: os atributos de validação ajudam a garantir que a conta criada no controller esteja correta.
+    [Range(0, double.MaxValue)]
+    public decimal LimitePIX { get; set; }
+}

@@ -20,81 +20,60 @@ public class ContaController : ControllerBase
         _contaService = contaService;
     }
 
-    /// <summary>
-    /// Cria uma nova conta.
-    /// </summary>
     [HttpPost]
     public async Task<IActionResult> CriarConta([FromBody] Conta conta)
     {
-        // Verifica se os dados enviados estão corretos.
-        if (!ModelState.IsValid)
-        {
-            return BadRequest(ModelState);
-        }
+      if (!ModelState.IsValid)
+        return BadRequest(ModelState);
 
-        // Tenta criar a conta no serviço.
-        var sucesso = await _contaService.CriarContaAsync(conta);
-        if (!sucesso)
-        {
-            // Retorna conflito se a conta já existir.
-            return Conflict("Conta já existe.");
-        }
+    var sucesso = await _contaService.CriarContaAsync(conta);
 
-        // Retorna 201 Created com o local da conta criada.
-        return CreatedAtAction(nameof(BuscarConta), new { cpf = conta.Cpf, numeroConta = conta.NumeroConta }, conta);
+    if (!sucesso)
+        return Conflict("Conta já existe.");
+
+    return CreatedAtAction(nameof(BuscarConta),
+        new { cpf = conta.Cpf, agencia = conta.AgenciaConta, numeroConta = conta.NumeroConta, limitePIX = conta.LimitePIX },
+        conta);
     }
 
-    /// <summary>
-    /// Busca uma conta por CPF e número da conta.
-    /// </summary>
-    [HttpGet("{cpf}/{numeroConta}")]
-    public async Task<IActionResult> BuscarConta(string cpf, string numeroConta)
-    {
-        // Consulta a conta pelo serviço.
-        var conta = await _contaService.BuscarContaAsync(cpf, numeroConta);
-        if (conta == null)
-        {
-            // Retorna 404 se não existir.
-            return NotFound("Conta não encontrada.");
-        }
+    [HttpGet]
+    public async Task<IActionResult> BuscarConta(
+    [FromQuery] string cpf,
+    [FromQuery] string numeroConta)
+{
+    var conta = await _contaService.BuscarContaAsync(cpf, numeroConta);
 
-        // Retorna a conta encontrada.
-        return Ok(conta);
-    }
+    if (conta == null)
+        return NotFound("Conta não encontrada.");
 
-    /// <summary>
-    /// Atualiza o limite de uma conta.
-    /// </summary>
-    [HttpPut("{cpf}/{numeroConta}/limite")]
-    public async Task<IActionResult> AtualizarLimite(string cpf, string numeroConta, [FromBody] decimal novoLimite)
-    {
-        // Atualiza apenas o limite da conta.
-        var sucesso = await _contaService.AtualizarLimiteAsync(cpf, numeroConta, novoLimite);
-        if (!sucesso)
-        {
-            // Se a conta não existir, retorna 404.
-            return NotFound("Conta não encontrada.");
-        }
+    return Ok(conta);
+}
 
-        // Retorna 204 No Content quando a atualização foi bem-sucedida.
-        return NoContent();
-    }
+    [HttpPut]
+    public async Task<IActionResult> AtualizarLimite([FromBody] Conta conta)
+{
+    var sucesso = await _contaService.AtualizarLimiteAsync(
+        conta.Cpf,
+        conta.NumeroConta,
+        conta.LimitePIX);
 
-    /// <summary>
-    /// Remove uma conta.
-    /// </summary>
-    [HttpDelete("{cpf}/{numeroConta}")]
-    public async Task<IActionResult> RemoverConta(string cpf, string numeroConta)
-    {
-        // Remove a conta do armazenamento.
-        var sucesso = await _contaService.RemoverContaAsync(cpf, numeroConta);
-        if (!sucesso)
-        {
-            // Se a conta não existir, retorna 404.
-            return NotFound("Conta não encontrada.");
-        }
+    if (!sucesso)
+        return NotFound();
 
-        // Retorna 204 No Content para indicar remoção bem-sucedida.
-        return NoContent();
-    }
+    return Content("Limite atualizado com sucesso.");
+}
+
+    [HttpDelete]
+public async Task<IActionResult> RemoverConta(
+    [FromQuery] string cpf,
+    [FromQuery] string numeroConta)
+{
+    var sucesso = await _contaService.RemoverContaAsync(cpf, numeroConta);
+
+    if (!sucesso)
+        return NotFound("Conta não encontrada.");
+
+    return Content("Conta removida com sucesso.");
+}
+
 }

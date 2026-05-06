@@ -25,6 +25,7 @@ public class TransacaoPixController : ControllerBase
     [HttpPost]
     public async Task<IActionResult> ProcessarTransacao([FromBody] TransacaoPix transacao)
     {
+        // Console.WriteLine($"Recebendo transação: CPF={transacao.Cpf}, Conta={transacao.NumeroConta}, Valor={transacao.Valor}");
         // Valida o payload enviado pelo cliente.
         if (!ModelState.IsValid)
         {
