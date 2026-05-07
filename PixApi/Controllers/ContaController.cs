@@ -4,19 +4,14 @@ using PixApi.Services;
 
 namespace PixApi.Controllers;
 
-/// <summary>
-/// Controller para operações CRUD de contas.
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class ContaController : ControllerBase
 {
-    // Serviço de conta injetado via DI para manter a controller leve.
     private readonly IContaService _contaService;
 
     public ContaController(IContaService contaService)
     {
-        // Guarda a instância injetada do serviço de conta.
         _contaService = contaService;
     }
 
@@ -40,40 +35,40 @@ public class ContaController : ControllerBase
     public async Task<IActionResult> BuscarConta(
     [FromQuery] string cpf,
     [FromQuery] string numeroConta)
-{
+    {
     var conta = await _contaService.BuscarContaAsync(cpf, numeroConta);
 
     if (conta == null)
         return NotFound("Conta não encontrada.");
 
     return Ok(conta);
-}
+    }
 
     [HttpPut]
     public async Task<IActionResult> AtualizarLimite([FromBody] Conta conta)
-{
+    {
     var sucesso = await _contaService.AtualizarLimiteAsync(
         conta.Cpf,
         conta.NumeroConta,
         conta.LimitePIX);
 
     if (!sucesso)
-        return NotFound();
+        return NotFound("Conta não encontrada.");
 
     return Content("Limite atualizado com sucesso.");
-}
+    }
 
     [HttpDelete]
-public async Task<IActionResult> RemoverConta(
+    public async Task<IActionResult> RemoverConta(
     [FromQuery] string cpf,
     [FromQuery] string numeroConta)
-{
+    {
     var sucesso = await _contaService.RemoverContaAsync(cpf, numeroConta);
 
     if (!sucesso)
         return NotFound("Conta não encontrada.");
 
     return Content("Conta removida com sucesso.");
-}
+    }
 
 }

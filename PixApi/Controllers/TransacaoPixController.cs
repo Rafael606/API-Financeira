@@ -4,14 +4,10 @@ using PixApi.Services;
 
 namespace PixApi.Controllers;
 
-/// <summary>
-/// Controller para processamento de transações PIX.
-/// </summary>
 [ApiController]
 [Route("api/[controller]")]
 public class TransacaoPixController : ControllerBase
 {
-    // Serviço de transações injetado para delegar a lógica de negócio.
     private readonly ITransacaoPixService _transacaoService;
 
     public TransacaoPixController(ITransacaoPixService transacaoService)
@@ -19,14 +15,9 @@ public class TransacaoPixController : ControllerBase
         _transacaoService = transacaoService;
     }
 
-    /// <summary>
-    /// Processa uma transação PIX.
-    /// </summary>
     [HttpPost]
     public async Task<IActionResult> ProcessarTransacao([FromBody] TransacaoPix transacao)
     {
-        // Console.WriteLine($"Recebendo transação: CPF={transacao.Cpf}, Conta={transacao.NumeroConta}, Valor={transacao.Valor}");
-        // Valida o payload enviado pelo cliente.
         if (!ModelState.IsValid)
         {
             return BadRequest(ModelState);

@@ -1,7 +1,4 @@
 using PixApi.Models;
-using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.DocumentModel;
-using Amazon.Runtime;
 
 namespace PixApi.Repositories;
 

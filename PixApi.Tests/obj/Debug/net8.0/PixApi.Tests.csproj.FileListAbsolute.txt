@@ -6,9 +6,6 @@ C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\appsett
 C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\appsettings.json
 C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\PixApi.exe
 C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\testhost.exe
-C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\xunit.runner.visualstudio.dotnetcore.testadapter.dll
-C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\xunit.runner.reporters.netcoreapp10.dll
-C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\xunit.runner.utility.netcoreapp10.dll
 C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\PixApi.Tests.deps.json
 C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\PixApi.Tests.runtimeconfig.json
 C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\PixApi.Tests.dll
@@ -24,7 +21,6 @@ C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\Microso
 C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\Microsoft.TestPlatform.Utilities.dll
 C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\Microsoft.VisualStudio.TestPlatform.Common.dll
 C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\Newtonsoft.Json.dll
-C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\NuGet.Frameworks.dll
 C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\Swashbuckle.AspNetCore.Swagger.dll
 C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerGen.dll
 C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\Swashbuckle.AspNetCore.SwaggerUI.dll
@@ -110,3 +106,11 @@ C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\obj\Debug\net8.0\refint\
 C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\obj\Debug\net8.0\PixApi.Tests.pdb
 C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\obj\Debug\net8.0\PixApi.Tests.genruntimeconfig.cache
 C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\obj\Debug\net8.0\ref\PixApi.Tests.dll
+C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\.msCoverageSourceRootsMapping_PixApi.Tests
+C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\obj\Debug\net8.0\PixApi.Tests.sourcelink.json
+C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\xunit.runner.visualstudio.testadapter.dll
+C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\AWSSDK.Core.dll
+C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\AWSSDK.DynamoDBv2.dll
+C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\AWSSDK.Extensions.NETCore.Setup.dll
+C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\Castle.Core.dll
+C:\Users\Rafael Campos\Documents\Teste BTG\PixApi.Tests\bin\Debug\net8.0\Moq.dll

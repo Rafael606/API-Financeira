@@ -3,23 +3,26 @@ using Amazon.DynamoDBv2.DataModel;
 
 namespace PixApi.Models;
 
-/// <summary>
-/// Representa uma conta bancária para controle de limite PIX.
-/// </summary>
 [DynamoDBTable("Conta")]
+
 public class Conta
 {
-    [Required]
-    [DynamoDBHashKey] // PK
+    [DynamoDBHashKey]
+    [Required(ErrorMessage = "CPF é obrigatório.")]
+    [StringLength(11, MinimumLength = 11, ErrorMessage = "CPF deve ter 11 dígitos.")]
+    [RegularExpression(@"^\d{11}$", ErrorMessage = "CPF deve conter apenas números.")]
     public string Cpf { get; set; } = string.Empty;
 
-    // [Required]
+    [Required(ErrorMessage = "Agência é obrigatória.")]
+    [StringLength(6, MinimumLength = 4, ErrorMessage = "Agência deve ter entre 4 e 6 dígitos.")]
+    [RegularExpression(@"^\d+$", ErrorMessage = "Agência deve conter apenas números.")]
     public string AgenciaConta { get; set; } = string.Empty;
 
-    [Required]
+    [Required(ErrorMessage = "Número da conta é obrigatório.")]
+    [StringLength(10, MinimumLength = 4, ErrorMessage = "Número da conta deve ter entre 4 e 10 dígitos.")]
+    [RegularExpression(@"^\d+$", ErrorMessage = "Número da conta deve conter apenas números.")]
     public string NumeroConta { get; set; } = string.Empty;
 
-
-    [Range(0, double.MaxValue)]
+    [Range(0, 1000000, ErrorMessage = "Limite PIX deve estar entre 0 e 1.000.000.")]
     public decimal LimitePIX { get; set; }
 }

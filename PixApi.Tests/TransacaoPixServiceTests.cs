@@ -1,101 +1,114 @@
 using Xunit;
+using Moq;
 using PixApi.Models;
 using PixApi.Services;
+using PixApi.Repositories;
 
-namespace PixApi.Tests;
-
-/// <summary>
-/// Testes para o serviço de transações PIX.
-/// </summary>
 public class TransacaoPixServiceTests
 {
-    private readonly IContaService _contaService;
-    private readonly ITransacaoPixService _transacaoService;
+    private readonly Mock<IContaService> _contaMock;
+    private readonly Mock<ITransacaoPixRepository> _repoMock;
+    private readonly TransacaoPixService _service;
 
     public TransacaoPixServiceTests()
     {
-        _contaService = new ContaService();
-        _transacaoService = new TransacaoPixService(_contaService);
+        _contaMock = new Mock<IContaService>();
+        _repoMock = new Mock<ITransacaoPixRepository>();
+
+        _service = new TransacaoPixService(_contaMock.Object, _repoMock.Object);
     }
 
-    [Fact]
-    public async Task ProcessarTransacaoAsync_TransacaoAprovada_DeveDescontarLimite()
-    {
-        // Arrange
-        var conta = new Conta
-        {
-            Cpf = "12345678901",
-            Agencia = "0001",
-            NumeroConta = "12345",
-            LimiteDisponivel = 1000
-        };
-        await _contaService.CriarContaAsync(conta);
-
-        var transacao = new TransacaoPix
-        {
-            Cpf = "12345678901",
-            NumeroConta = "12345",
-            Valor = 500
-        };
-
-        // Act
-        var resultado = await _transacaoService.ProcessarTransacaoAsync(transacao);
-
-        // Assert
-        Assert.True(resultado.Aprovada);
-        Assert.Equal("Transação aprovada.", resultado.Mensagem);
-
-        var contaAtualizada = await _contaService.BuscarContaAsync("12345678901", "12345");
-        Assert.Equal(500, contaAtualizada?.LimiteDisponivel);
-    }
+    // =====================================================
+    // SUCESSO - transação aprovada
+    // =====================================================
 
     [Fact]
-    public async Task ProcessarTransacaoAsync_LimiteInsuficiente_DeveNegar()
+    public async Task Processar_Transacao_Deve_Aprovar_Quando_Limite_Suficiente()
     {
-        // Arrange
-        var conta = new Conta
-        {
-            Cpf = "12345678901",
-            Agencia = "0001",
-            NumeroConta = "12345",
-            LimiteDisponivel = 100
-        };
-        await _contaService.CriarContaAsync(conta);
-
         var transacao = new TransacaoPix
         {
-            Cpf = "12345678901",
-            NumeroConta = "12345",
-            Valor = 200
-        };
-
-        // Act
-        var resultado = await _transacaoService.ProcessarTransacaoAsync(transacao);
-
-        // Assert
-        Assert.False(resultado.Aprovada);
-        Assert.Equal("Limite insuficiente.", resultado.Mensagem);
-
-        var contaAtualizada = await _contaService.BuscarContaAsync("12345678901", "12345");
-        Assert.Equal(100, contaAtualizada?.LimiteDisponivel); // Limite não alterado
-    }
-
-    [Fact]
-    public async Task ProcessarTransacaoAsync_ContaNaoEncontrada_DeveNegar()
-    {
-        // Arrange
-        var transacao = new TransacaoPix
-        {
-            Cpf = "99999999999",
-            NumeroConta = "99999",
+            Cpf = "123",
+            NumeroConta = "1",
             Valor = 100
         };
 
-        // Act
-        var resultado = await _transacaoService.ProcessarTransacaoAsync(transacao);
+        var conta = new Conta
+        {
+            Cpf = "123",
+            NumeroConta = "1",
+            LimitePIX = 500
+        };
 
-        // Assert
+        _contaMock
+            .Setup(x => x.BuscarContaAsync("123", "1"))
+            .ReturnsAsync(conta);
+
+        _repoMock
+            .Setup(x => x.SalvarAsync(transacao))
+            .Returns(Task.CompletedTask);
+
+        _contaMock
+            .Setup(x => x.AtualizarLimiteAsync("123", "1", 400))
+            .ReturnsAsync(true);
+
+        var resultado = await _service.ProcessarTransacaoAsync(transacao);
+
+        Assert.True(resultado.Aprovada);
+        Assert.Equal("Transação aprovada.", resultado.Mensagem);
+    }
+
+    // =====================================================
+    // INSUCESSO - conta não existe
+    // =====================================================
+
+    [Fact]
+    public async Task Processar_Transacao_Deve_Rejeitar_Quando_Conta_Nao_Existe()
+    {
+        _contaMock
+            .Setup(x => x.BuscarContaAsync("123", "1"))
+            .ReturnsAsync((Conta)null);
+
+        var transacao = new TransacaoPix
+        {
+            Cpf = "123",
+            NumeroConta = "1",
+            Valor = 100
+        };
+
+        var resultado = await _service.ProcessarTransacaoAsync(transacao);
+
         Assert.False(resultado.Aprovada);
         Assert.Equal("Conta não encontrada.", resultado.Mensagem);
+    }
+
+    // =====================================================
+    // INSUCESSO - limite insuficiente
+    // =====================================================
+
+    [Fact]
+    public async Task Processar_Transacao_Deve_Rejeitar_Quando_Limite_Insuficiente()
+    {
+        var conta = new Conta
+        {
+            Cpf = "123",
+            NumeroConta = "12",
+            LimitePIX = 50
+        };
+
+        _contaMock
+            .Setup(x => x.BuscarContaAsync("123", "1"))
+            .ReturnsAsync(conta);
+
+        var transacao = new TransacaoPix
+        {
+            Cpf = "123",
+            NumeroConta = "1",
+            Valor = 100
+        };
+
+        var resultado = await _service.ProcessarTransacaoAsync(transacao);
+
+        Assert.False(resultado.Aprovada);
+        Assert.Equal("Limite insuficiente.", resultado.Mensagem);
     }
 }
