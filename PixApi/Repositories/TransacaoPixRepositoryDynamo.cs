@@ -1,5 +1,4 @@
 using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.DocumentModel;
 using PixApi.Models;
 using Amazon.DynamoDBv2.Model;
 using System.Globalization;

@@ -1,10 +1,11 @@
 using System.ComponentModel.DataAnnotations;
+using Amazon.DynamoDBv2.DataModel;
 
 namespace PixApi.Models;
  
 public class TransacaoPix
 {
-
+    [DynamoDBHashKey]
     [Required(ErrorMessage = "CPF é obrigatório.")]
     public string Cpf { get; set; } = string.Empty;
 

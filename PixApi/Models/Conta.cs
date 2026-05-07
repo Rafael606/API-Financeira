@@ -16,6 +16,7 @@ public class Conta
     [RegularExpression(@"^\d+$", ErrorMessage = "Agência deve conter apenas números.")]
     public string AgenciaConta { get; set; } = string.Empty;
 
+    [DynamoDBRangeKey]
     [Required(ErrorMessage = "Número da conta é obrigatório.")]
     [StringLength(10, MinimumLength = 4, ErrorMessage = "Número da conta deve ter entre 4 e 10 dígitos.")]
     [RegularExpression(@"^\d+$", ErrorMessage = "Número da conta deve conter apenas números.")]

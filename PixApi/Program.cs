@@ -1,15 +1,8 @@
 using PixApi.Services;
 using PixApi.Repositories;
 using Amazon.DynamoDBv2;
-using Amazon.DynamoDBv2.DocumentModel;
-using Amazon.Extensions.NETCore.Setup;
 
 var builder = WebApplication.CreateBuilder(args);
-
-// Add services to the container.
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
-builder.Services.AddEndpointsApiExplorer();
-builder.Services.AddSwaggerGen();
 
 // Registra o cliente do DynamoDB via AWS SDK
 builder.Services.AddSingleton<IAmazonDynamoDB>(sp =>
@@ -34,7 +27,6 @@ builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 // Força redirecionamento de HTTP para HTTPS para mais segurança.
 app.UseHttpsRedirection();
 

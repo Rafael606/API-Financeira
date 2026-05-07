@@ -1,114 +1,138 @@
-using Xunit;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Moq;
 using PixApi.Models;
 using PixApi.Services;
 using PixApi.Repositories;
 
-public class TransacaoPixServiceTests
-{
-    private readonly Mock<IContaService> _contaMock;
-    private readonly Mock<ITransacaoPixRepository> _repoMock;
-    private readonly TransacaoPixService _service;
+namespace PixApi.Tests
+{   
+    /// <summary>
+    /// Testes unitários do TransacaoPixService, validando regras de negócio como aprovação e rejeição de transações PIX.
+    /// </summary> 
 
-    public TransacaoPixServiceTests()
+    [TestClass]
+    public class TransacaoPixServiceTests
     {
-        _contaMock = new Mock<IContaService>();
-        _repoMock = new Mock<ITransacaoPixRepository>();
+        private Mock<IContaService> _contaMock;
+        private Mock<ITransacaoPixRepository> _repoMock;
+        private TransacaoPixService _service;
 
-        _service = new TransacaoPixService(_contaMock.Object, _repoMock.Object);
-    }
-
-    // =====================================================
-    // SUCESSO - transação aprovada
-    // =====================================================
-
-    [Fact]
-    public async Task Processar_Transacao_Deve_Aprovar_Quando_Limite_Suficiente()
-    {
-        var transacao = new TransacaoPix
+        [TestInitialize]
+        public void Setup()
         {
-            Cpf = "123",
-            NumeroConta = "1",
-            Valor = 100
-        };
+            _contaMock = new Mock<IContaService>();
+            _repoMock = new Mock<ITransacaoPixRepository>();
 
-        var conta = new Conta
+            _service = new TransacaoPixService(_contaMock.Object, _repoMock.Object);
+        }
+
+        #region ProcessarTransacao Tests - Sucesso 
+
+        // =====================================================
+        // SUCESSO - transação aprovada
+        // =====================================================
+
+        [TestMethod]
+        public async Task Processar_Transacao_Deve_Aprovar_Quando_Limite_Suficiente()
         {
-            Cpf = "123",
-            NumeroConta = "1",
-            LimitePIX = 500
-        };
+            // Arrange
+            var transacao = new TransacaoPix
+            {
+                Cpf = "123",
+                NumeroConta = "1",
+                Valor = 100
+            };
 
-        _contaMock
-            .Setup(x => x.BuscarContaAsync("123", "1"))
-            .ReturnsAsync(conta);
+            var conta = new Conta
+            {
+                Cpf = "123",
+                NumeroConta = "1",
+                LimitePIX = 500
+            };
 
-        _repoMock
-            .Setup(x => x.SalvarAsync(transacao))
-            .Returns(Task.CompletedTask);
+            _contaMock
+                .Setup(x => x.BuscarContaAsync("123", "1"))
+                .ReturnsAsync(conta);
 
-        _contaMock
-            .Setup(x => x.AtualizarLimiteAsync("123", "1", 400))
-            .ReturnsAsync(true);
+            _repoMock
+                .Setup(x => x.SalvarAsync(transacao))
+                .Returns(Task.CompletedTask);
 
-        var resultado = await _service.ProcessarTransacaoAsync(transacao);
+            _contaMock
+                .Setup(x => x.AtualizarLimiteAsync("123", "1", 400))
+                .ReturnsAsync(true);
 
-        Assert.True(resultado.Aprovada);
-        Assert.Equal("Transação aprovada.", resultado.Mensagem);
-    }
+            // Act
+            var resultado = await _service.ProcessarTransacaoAsync(transacao);
 
-    // =====================================================
-    // INSUCESSO - conta não existe
-    // =====================================================
+            // Assert
+            Assert.IsTrue(resultado.Aprovada);
+            Assert.AreEqual("Transação aprovada.", resultado.Mensagem);
+        }
+        #endregion
 
-    [Fact]
-    public async Task Processar_Transacao_Deve_Rejeitar_Quando_Conta_Nao_Existe()
-    {
-        _contaMock
-            .Setup(x => x.BuscarContaAsync("123", "1"))
-            .ReturnsAsync((Conta)null);
+         #region ProcessarTransacao Tests - Insucesso
 
-        var transacao = new TransacaoPix
+        // =====================================================
+        // INSUCESSO - conta não existe
+        // =====================================================
+
+        [TestMethod]
+        public async Task Processar_Transacao_Deve_Rejeitar_Quando_Conta_Nao_Existe()
         {
-            Cpf = "123",
-            NumeroConta = "1",
-            Valor = 100
-        };
+            // Arrange
+            _contaMock
+                .Setup(x => x.BuscarContaAsync("123", "1"))
+                .ReturnsAsync((Conta)null);
 
-        var resultado = await _service.ProcessarTransacaoAsync(transacao);
+            var transacao = new TransacaoPix
+            {
+                Cpf = "123",
+                NumeroConta = "1",
+                Valor = 100
+            };
 
-        Assert.False(resultado.Aprovada);
-        Assert.Equal("Conta não encontrada.", resultado.Mensagem);
-    }
+            // Act
+            var resultado = await _service.ProcessarTransacaoAsync(transacao);
 
-    // =====================================================
-    // INSUCESSO - limite insuficiente
-    // =====================================================
+            // Assert
+            Assert.IsFalse(resultado.Aprovada);
+            Assert.AreEqual("Conta não encontrada.", resultado.Mensagem);
+        }
 
-    [Fact]
-    public async Task Processar_Transacao_Deve_Rejeitar_Quando_Limite_Insuficiente()
-    {
-        var conta = new Conta
+        // =====================================================
+        // INSUCESSO - limite insuficiente
+        // =====================================================
+
+        [TestMethod]
+        public async Task Processar_Transacao_Deve_Rejeitar_Quando_Limite_Insuficiente()
         {
-            Cpf = "123",
-            NumeroConta = "12",
-            LimitePIX = 50
-        };
+            // Arrange
+            var conta = new Conta
+            {
+                Cpf = "123",
+                NumeroConta = "12",
+                LimitePIX = 50
+            };
 
-        _contaMock
-            .Setup(x => x.BuscarContaAsync("123", "1"))
-            .ReturnsAsync(conta);
+            _contaMock
+                .Setup(x => x.BuscarContaAsync("123", "1"))
+                .ReturnsAsync(conta);
 
-        var transacao = new TransacaoPix
-        {
-            Cpf = "123",
-            NumeroConta = "1",
-            Valor = 100
-        };
+            var transacao = new TransacaoPix
+            {
+                Cpf = "123",
+                NumeroConta = "1",
+                Valor = 100
+            };
 
-        var resultado = await _service.ProcessarTransacaoAsync(transacao);
+            // Act
+            var resultado = await _service.ProcessarTransacaoAsync(transacao);
 
-        Assert.False(resultado.Aprovada);
-        Assert.Equal("Limite insuficiente.", resultado.Mensagem);
+            // Assert
+            Assert.IsFalse(resultado.Aprovada);
+            Assert.AreEqual("Limite insuficiente.", resultado.Mensagem);
+        }
+        #endregion
     }
 }

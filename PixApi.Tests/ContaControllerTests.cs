@@ -1,337 +1,226 @@
-using Xunit; // Framework de testes unitários
-using Moq; // Biblioteca para criação de mocks
-using Microsoft.AspNetCore.Mvc; // Tipos de retorno da API (Ok, Created, etc)
-using PixApi.Controllers; // Controller que será testado
-using PixApi.Models; // Model da Conta
-using PixApi.Services; // Interface do serviço
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Microsoft.AspNetCore.Mvc;
+using Moq;
+using PixApi.Controllers;
+using PixApi.Models;
+using PixApi.Services;
 
-public class ContaControllerTests
+namespace PixApi.Tests
 {
-    // Mock do serviço de conta (simula comportamento real sem banco)
-    private readonly Mock<IContaService> _servicoMock;
-
-    // Controller que será testada
-    private readonly ContaController _controller;
-
-    public ContaControllerTests()
+    /// <summary>
+    /// Testes unitários do ContaController, validando respostas HTTP e integração com o ContaService.
+    /// </summary>
+    
+    [TestClass]
+    public class ContaControllerTests
     {
-        // Inicializa o mock do serviço
-        _servicoMock = new Mock<IContaService>();
+        private Mock<IContaService> _contaServiceMock;
+        private ContaController _controller;
 
-        // Injeta o mock dentro da controller (Dependency Injection manual)
-        _controller = new ContaController(_servicoMock.Object);
-    }
-
-    // =====================================================
-    // POST - SUCESSO
-    // =====================================================
-
-    [Fact] // Marca o método como teste unitário
-    public async Task ValidarCriacaoContaComSucesso()
-    {
-        // Simula que o serviço vai retornar sucesso ao criar conta
-        _servicoMock
-            .Setup(x => x.CriarContaAsync(It.IsAny<Conta>()))
-            .ReturnsAsync(true);
-
-        // Cria uma conta válida para teste
-        var conta = new Conta
+        [TestInitialize]
+        public void Setup()
         {
-            Cpf = "12345678901", // CPF válido
-            AgenciaConta = "0001", // Agência válida
-            NumeroConta = "12345", // Conta válida
-            LimitePIX = 1000 // Limite válido
-        };
+            _contaServiceMock = new Mock<IContaService>();
+            _controller = new ContaController(_contaServiceMock.Object);
+        }
 
-        // Chama o método da controller
-        var resultado = await _controller.CriarConta(conta);
+        #region CriarConta Tests
 
-        // Verifica se retornou CreatedAtAction (201)
-        var criado = Assert.IsType<CreatedAtActionResult>(resultado);
-
-        // Valida status HTTP 201
-        Assert.Equal(201, criado.StatusCode);
-    }
-
-    // =====================================================
-    // POST - INSUCESSO (regra de negócio)
-    // =====================================================
-
-    [Fact]
-    public async Task ValidarCriacaoContaJaExistente()
-    {
-        // Simula que o serviço não conseguiu criar (conta já existe)
-        _servicoMock
-            .Setup(x => x.CriarContaAsync(It.IsAny<Conta>()))
-            .ReturnsAsync(false);
-
-        // Cria uma conta inválida propositalmente
-        var conta = new Conta
+        [TestMethod]
+        public async Task ValidarCriarContaRetorna201QuandoSucesso()
         {
-            Cpf = "00000000000", // CPF inválido lógico
-            AgenciaConta = "9999", // Agência inválida
-            NumeroConta = "00000", // Conta inválida
-            LimitePIX = -100 // Limite negativo inválido
-        };
+            var conta = new Conta { Cpf = "12345678901", AgenciaConta = "0001", NumeroConta = "12345", LimitePIX = 1000.00m };
 
-        // Executa a controller
-        var resultado = await _controller.CriarConta(conta);
+            _contaServiceMock.Setup(x => x.CriarContaAsync(It.Is<Conta>(c => c.Cpf == conta.Cpf))).ReturnsAsync(true);
 
-        // Verifica se retornou conflito (409)
-        Assert.IsType<ConflictObjectResult>(resultado);
-    }
+            var result = await _controller.CriarConta(conta);
 
-    // =====================================================
-    // POST - INSUCESSO (validação de campos)
-    // =====================================================
+            var createdResult = result as CreatedAtActionResult;
+            Assert.IsNotNull(createdResult);
+            Assert.AreEqual(conta, createdResult.Value);
+        }
 
-    [Fact]
-    public async Task ValidarCriacaoContaCpfInvalido()
-    {
-        // Simula erro de validação no ModelState (CPF inválido)
-        _controller.ModelState.AddModelError("Cpf", "CPF inválido");
-
-        // Cria conta com CPF inválido
-        var conta = new Conta
+        [TestMethod]
+        public async Task ValidarCriarContaRetorna409QuandoContaJaExiste()
         {
-            Cpf = "123", // CPF inválido
-            AgenciaConta = "0001",
-            NumeroConta = "12345",
-            LimitePIX = 1000
-        };
+            var conta = new Conta { Cpf = "12345678901", AgenciaConta = "0001", NumeroConta = "12345", LimitePIX = 1000.00m };
 
-        // Executa controller
-        var resultado = await _controller.CriarConta(conta);
+            _contaServiceMock.Setup(x => x.CriarContaAsync(It.Is<Conta>(c => c.Cpf == conta.Cpf && c.NumeroConta == conta.NumeroConta))).ReturnsAsync(false);
 
-        // Verifica retorno 400 BadRequest
-        var badRequest = Assert.IsType<BadRequestObjectResult>(resultado);
+            var result = await _controller.CriarConta(conta);
 
-        // Verifica se retorno contém erro estruturado
-        Assert.IsType<SerializableError>(badRequest.Value);
-    }
+            var conflictResult = result as ConflictObjectResult;
+            Assert.IsNotNull(conflictResult);
+            Assert.AreEqual("Conta já existe.", conflictResult.Value);
+        }
 
-    [Fact]
-    public async Task ValidarCriacaoContaAgenciaInvalida()
-    {
-        // Simula erro de validação na agência
-        _controller.ModelState.AddModelError("AgenciaConta", "Agência inválida");
-
-        // Cria conta com agência inválida
-        var conta = new Conta
+        [TestMethod]
+        public async Task ValidarCriarContaRetorna400CPFInvalido()
         {
-            Cpf = "12345678901",
-            AgenciaConta = "ABC", // inválido
-            NumeroConta = "12345",
-            LimitePIX = 1000
-        };
+            var conta = new Conta { Cpf = "123", AgenciaConta = "0001", NumeroConta = "12345", LimitePIX = 1000.00m };
+            _controller.ModelState.AddModelError("Cpf", "CPF deve ter 11 dígitos.");
 
-        // Executa controller
-        var resultado = await _controller.CriarConta(conta);
+            var result = await _controller.CriarConta(conta);
 
-        // Valida retorno de erro 400
-        var badRequest = Assert.IsType<BadRequestObjectResult>(resultado);
+            Assert.IsNotNull(result as BadRequestObjectResult);
+        }
 
-        Assert.IsType<SerializableError>(badRequest.Value);
-    }
+        #endregion
 
-    [Fact]
-    public async Task ValidarCriacaoContaNumeroContaInvalido()
-    {
-        // Simula erro no número da conta
-        _controller.ModelState.AddModelError("NumeroConta", "Número inválido");
+        #region BuscarConta Tests
 
-        // Cria conta com número inválido
-        var conta = new Conta
+        [TestMethod]
+        public async Task ValidarBuscarContaRetorna200QuandoEncontrada()
         {
-            Cpf = "12345678901",
-            AgenciaConta = "0001",
-            NumeroConta = "ABC", // inválido
-            LimitePIX = 1000
-        };
+            var cpf = "12345678901";
+            var numeroConta = "12345";
+            var contaEsperada = new Conta { Cpf = cpf, AgenciaConta = "0001", NumeroConta = numeroConta, LimitePIX = 1000.00m };
 
-        // Executa controller
-        var resultado = await _controller.CriarConta(conta);
+            _contaServiceMock.Setup(x => x.BuscarContaAsync(cpf, numeroConta)).ReturnsAsync(contaEsperada);
 
-        // Valida erro 400
-        var badRequest = Assert.IsType<BadRequestObjectResult>(resultado);
+            var result = await _controller.BuscarConta(cpf, numeroConta);
 
-        Assert.IsType<SerializableError>(badRequest.Value);
-    }
+            var okResult = result as OkObjectResult;
+            Assert.IsNotNull(okResult);
+            Assert.AreEqual(contaEsperada, okResult.Value);
+        }
 
-    [Fact]
-    public async Task ValidarCriacaoContaLimitePixInvalido()
-    {
-        // Simula erro de limite PIX inválido
-        _controller.ModelState.AddModelError("LimitePIX", "Limite inválido");
-
-        // Cria conta com limite negativo
-        var conta = new Conta
+        [TestMethod]
+        public async Task ValidarBuscarContaRetorna404QuandoNaoEncontrada()
         {
-            Cpf = "12345678901",
-            AgenciaConta = "0001",
-            NumeroConta = "12345",
-            LimitePIX = -100 // inválido
-        };
+            var cpf = "12345678901";
+            var numeroConta = "12345";
 
-        // Executa controller
-        var resultado = await _controller.CriarConta(conta);
+            _contaServiceMock.Setup(x => x.BuscarContaAsync(cpf, numeroConta)).ReturnsAsync((Conta)null);
 
-        // Valida retorno 400
-        var badRequest = Assert.IsType<BadRequestObjectResult>(resultado);
+            var result = await _controller.BuscarConta(cpf, numeroConta);
 
-        Assert.IsType<SerializableError>(badRequest.Value);
-    }
+            var notFoundResult = result as NotFoundObjectResult;
+            Assert.IsNotNull(notFoundResult);
+            Assert.AreEqual("Conta não encontrada.", notFoundResult.Value);
+        }
 
-    // =====================================================
-    // GET - SUCESSO
-    // =====================================================
+        #endregion
 
-    [Fact]
-    public async Task ValidarBuscaContaComSucesso()
-    {
-        // Simula conta encontrada no serviço
-        var conta = new Conta
+        #region AtualizarLimite Tests
+
+        [TestMethod]
+        public async Task ValidarAtualizarLimiteRetorna200QuandoSucesso()
         {
-            Cpf = "12345678901",
-            NumeroConta = "12345",
-            LimitePIX = 1000
-        };
+            var conta = new Conta { Cpf = "12345678901", NumeroConta = "12345", LimitePIX = 2000.00m };
 
-        // Configura mock para retorno da conta
-        _servicoMock
-            .Setup(x => x.BuscarContaAsync("12345678901", "12345"))
-            .ReturnsAsync(conta);
+            _contaServiceMock.Setup(x => x.AtualizarLimiteAsync(conta.Cpf, conta.NumeroConta, conta.LimitePIX)).ReturnsAsync(true);
 
-        // Executa busca
-        var resultado = await _controller.BuscarConta("12345678901", "12345");
+            var result = await _controller.AtualizarLimite(conta);
 
-        // Verifica retorno 200 OK
-        var ok = Assert.IsType<OkObjectResult>(resultado);
+            var contentResult = result as ContentResult;
+            Assert.IsNotNull(contentResult);
+            Assert.AreEqual("Limite atualizado com sucesso.", contentResult.Content);
+        }
 
-        // Valida objeto retornado
-        Assert.Equal(conta, ok.Value);
-    }
-
-    // =====================================================
-    // GET - INSUCESSO
-    // =====================================================
-
-    [Fact]
-    public async Task ValidarBuscaContaNaoEncontrada()
-    {
-        // Simula conta inexistente
-        _servicoMock
-            .Setup(x => x.BuscarContaAsync("99999999999", "99999"))
-            .ReturnsAsync((Conta)null);
-
-        // Executa busca
-        var resultado = await _controller.BuscarConta("99999999999", "99999");
-
-        // Valida retorno 404
-        var notFound = Assert.IsType<NotFoundObjectResult>(resultado);
-
-        // Valida mensagem
-        Assert.Equal("Conta não encontrada.", notFound.Value);
-    }
-
-    // =====================================================
-    // PUT - SUCESSO
-    // =====================================================
-
-    [Fact]
-    public async Task ValidarAtualizacaoLimiteComSucesso()
-    {
-        // Simula atualização bem-sucedida
-        _servicoMock
-            .Setup(x => x.AtualizarLimiteAsync("12345678901", "12345", 500))
-            .ReturnsAsync(true);
-
-        // Cria conta com novo limite
-        var conta = new Conta
+        [TestMethod]
+        public async Task ValidarAtualizarLimiteRetorna404QuandoContaNaoEncontrada()
         {
-            Cpf = "12345678901",
-            NumeroConta = "12345",
-            LimitePIX = 500
-        };
+            var conta = new Conta { Cpf = "12345678901", NumeroConta = "12345", LimitePIX = 2000.00m };
 
-        // Executa atualização
-        var resultado = await _controller.AtualizarLimite(conta);
+            _contaServiceMock.Setup(x => x.AtualizarLimiteAsync(conta.Cpf, conta.NumeroConta, conta.LimitePIX)).ReturnsAsync(false);
 
-        // Verifica retorno de sucesso
-        var ok = Assert.IsType<ContentResult>(resultado);
+            var result = await _controller.AtualizarLimite(conta);
 
-        // Valida mensagem
-        Assert.Equal("Limite atualizado com sucesso.", ok.Content);
-    }
+            var notFoundResult = result as NotFoundObjectResult;
+            Assert.IsNotNull(notFoundResult);
+            Assert.AreEqual("Conta não encontrada.", notFoundResult.Value);
+        }
 
-    // =====================================================
-    // PUT - INSUCESSO
-    // =====================================================
+        #endregion
 
-    [Fact]
-    public async Task ValidarAtualizacaoLimiteContaNaoExiste()
-    {
-        // Simula falha na atualização
-        _servicoMock
-            .Setup(x => x.AtualizarLimiteAsync("00000000000", "99999", 999999))
-            .ReturnsAsync(false);
+        #region RemoverConta Tests
 
-        // Cria conta inexistente
-        var conta = new Conta
+        [TestMethod]
+        public async Task ValidarRemoverContaRetorna200QuandoSucesso()
         {
-            Cpf = "00000000000",
-            NumeroConta = "99999",
-            LimitePIX = 999999
-        };
+            var cpf = "12345678901";
+            var numeroConta = "12345";
 
-        // Executa controller
-        var resultado = await _controller.AtualizarLimite(conta);
+            _contaServiceMock.Setup(x => x.RemoverContaAsync(cpf, numeroConta)).ReturnsAsync(true);
 
-        // Valida retorno 404
-        Assert.IsType<NotFoundResult>(resultado);
-    }
+            var result = await _controller.RemoverConta(cpf, numeroConta);
 
-    // =====================================================
-    // DELETE - SUCESSO
-    // =====================================================
+            var contentResult = result as ContentResult;
+            Assert.IsNotNull(contentResult);
+            Assert.AreEqual("Conta removida com sucesso.", contentResult.Content);
+        }
 
-    [Fact]
-    public async Task ValidarRemocaoContaComSucesso()
-    {
-        // Simula remoção bem-sucedida
-        _servicoMock
-            .Setup(x => x.RemoverContaAsync("12345678901", "12345"))
-            .ReturnsAsync(true);
+        [TestMethod]
+        public async Task ValidarRemoverContaRetorna404QuandoNaoEncontrada()
+        {
+            var cpf = "12345678901";
+            var numeroConta = "12345";
 
-        // Executa remoção
-        var resultado = await _controller.RemoverConta("12345678901", "12345");
+            _contaServiceMock.Setup(x => x.RemoverContaAsync(cpf, numeroConta)).ReturnsAsync(false);
 
-        // Verifica retorno de sucesso
-        var content = Assert.IsType<ContentResult>(resultado);
+            var result = await _controller.RemoverConta(cpf, numeroConta);
 
-        // Valida mensagem
-        Assert.Equal("Conta removida com sucesso.", content.Content);
-    }
+            var notFoundResult = result as NotFoundObjectResult;
+            Assert.IsNotNull(notFoundResult);
+            Assert.AreEqual("Conta não encontrada.", notFoundResult.Value);
+        }
 
-    // =====================================================
-    // DELETE - INSUCESSO
-    // =====================================================
+        #endregion
 
-    [Fact]
-    public async Task ValidarRemocaoContaNaoExiste()
-    {
-        // Simula falha na remoção
-        _servicoMock
-            .Setup(x => x.RemoverContaAsync("00000000000", "99999"))
-            .ReturnsAsync(false);
+        #region Chamadas ao Service
 
-        // Executa controller
-        var resultado = await _controller.RemoverConta("00000000000", "99999");
+        [TestMethod]
+        public async Task ValidarCriarContaChamaServiceUmaVez()
+        {
+            var conta = new Conta { Cpf = "12345678901", AgenciaConta = "0001", NumeroConta = "12345", LimitePIX = 1000.00m };
 
-        // Valida retorno 404
-        var notFound = Assert.IsType<NotFoundObjectResult>(resultado);
+            _contaServiceMock.Setup(x => x.CriarContaAsync(It.IsAny<Conta>())).ReturnsAsync(true);
 
-        // Valida mensagem
-        Assert.Equal("Conta não encontrada.", notFound.Value);
+            await _controller.CriarConta(conta);
+
+            _contaServiceMock.Verify(
+                x => x.CriarContaAsync(It.Is<Conta>(c => c.Cpf == conta.Cpf && c.NumeroConta == conta.NumeroConta)),Times.Once);
+        }
+
+        [TestMethod]
+        public async Task ValidarBuscarContaChamaServiceUmaVez()
+        {
+            var cpf = "12345678901";
+            var numeroConta = "12345";
+
+            _contaServiceMock.Setup(x => x.BuscarContaAsync(cpf, numeroConta)).ReturnsAsync(new Conta());
+
+            await _controller.BuscarConta(cpf, numeroConta);
+
+            _contaServiceMock.Verify(x => x.BuscarContaAsync(cpf, numeroConta), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task ValidarAtualizarLimiteChamaServiceUmaVez()
+        {
+            var conta = new Conta { Cpf = "12345678901", NumeroConta = "12345", LimitePIX = 2000.00m };
+
+            _contaServiceMock.Setup(x => x.AtualizarLimiteAsync(conta.Cpf, conta.NumeroConta, conta.LimitePIX)).ReturnsAsync(true);
+
+            await _controller.AtualizarLimite(conta);
+
+            _contaServiceMock.Verify(x => x.AtualizarLimiteAsync(conta.Cpf, conta.NumeroConta, conta.LimitePIX), Times.Once);
+        }
+
+        [TestMethod]
+        public async Task ValidarRemoverContaChamaServiceUmaVez()
+        {
+            var cpf = "12345678901";
+            var numeroConta = "12345";
+
+            _contaServiceMock.Setup(x => x.RemoverContaAsync(cpf, numeroConta)).ReturnsAsync(true);
+
+            await _controller.RemoverConta(cpf, numeroConta);
+
+            _contaServiceMock.Verify(x => x.RemoverContaAsync(cpf, numeroConta), Times.Once);
+        }
+
+        #endregion
     }
 }

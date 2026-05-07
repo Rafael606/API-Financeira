@@ -16,7 +16,6 @@ public class TransacaoPixService : ITransacaoPixService
 
     public async Task<ResultadoTransacao> ProcessarTransacaoAsync(TransacaoPix transacao)
     {
-        // Encontra a conta pelo CPF e número da conta.
         var conta = await _contaService.BuscarContaAsync(transacao.Cpf, transacao.NumeroConta);
         if (conta == null)
         {
