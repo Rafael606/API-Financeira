@@ -26,7 +26,7 @@ public class TransacaoPixRepositoryDynamo : ITransacaoPixRepository
                 { "CPF", new AttributeValue { S = transacao.Cpf } },
                 { "NumeroConta", new AttributeValue { S = transacao.NumeroConta } },
                 { "ValorTransacao", new AttributeValue { N = transacao.Valor.ToString(CultureInfo.InvariantCulture) } },
-                { "DataTransacao", new AttributeValue { S = DateTime.UtcNow.ToString("o") } }
+                { "DataTransacao", new AttributeValue { S = DateTime.UtcNow.AddHours(-3).ToString("o") } }
             }
         };
 

@@ -13,8 +13,6 @@ public class Conta
     [RegularExpression(@"^\d{11}$", ErrorMessage = "CPF deve conter apenas números.")]
     public string Cpf { get; set; } = string.Empty;
 
-    [Required(ErrorMessage = "Agência é obrigatória.")]
-    [StringLength(6, MinimumLength = 4, ErrorMessage = "Agência deve ter entre 4 e 6 dígitos.")]
     [RegularExpression(@"^\d+$", ErrorMessage = "Agência deve conter apenas números.")]
     public string AgenciaConta { get; set; } = string.Empty;
 
