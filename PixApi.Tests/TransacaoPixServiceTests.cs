@@ -12,9 +12,9 @@ namespace PixApi.Tests
     [TestClass]
     public class TransacaoPixServiceTests
     {
-        private Mock<IContaService> _contaMock;
-        private Mock<ITransacaoPixRepository> _repoMock;
-        private TransacaoPixService _service;
+        private Mock<IContaService> _contaMock = null!;
+        private Mock<ITransacaoPixRepository> _repoMock = null!;
+        private TransacaoPixService _service = null!;
 
         [TestInitialize]
         public void Setup()

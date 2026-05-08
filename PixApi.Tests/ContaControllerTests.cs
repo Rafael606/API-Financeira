@@ -14,8 +14,8 @@ namespace PixApi.Tests
     [TestClass]
     public class ContaControllerTests
     {
-        private Mock<IContaService> _contaServiceMock;
-        private ContaController _controller;
+        private Mock<IContaService> _contaServiceMock = null!;
+        private ContaController _controller = null!;
 
         [TestInitialize]
         public void Setup()
@@ -91,7 +91,7 @@ namespace PixApi.Tests
             var cpf = "12345678901";
             var numeroConta = "12345";
 
-            _contaServiceMock.Setup(x => x.BuscarContaAsync(cpf, numeroConta)).ReturnsAsync((Conta)null);
+            _contaServiceMock.Setup(x => x.BuscarContaAsync(cpf, numeroConta)).ReturnsAsync((Conta?)null);
 
             var result = await _controller.BuscarConta(cpf, numeroConta);
 

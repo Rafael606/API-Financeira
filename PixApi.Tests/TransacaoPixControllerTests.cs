@@ -14,8 +14,8 @@ namespace PixApi.Tests
     [TestClass]
     public class TransacaoPixControllerTests
     {
-        private Mock<ITransacaoPixService> _transacaoServiceMock;
-        private TransacaoPixController _controller;
+        private Mock<ITransacaoPixService> _transacaoServiceMock = null!;
+        private TransacaoPixController _controller = null!;
 
         [TestInitialize]
         public void Setup()
@@ -54,7 +54,7 @@ namespace PixApi.Tests
             var result = await _controller.ProcessarTransacao(transacao);
 
             var retorno = (result as OkObjectResult)?.Value as ResultadoTransacao;
-            Assert.IsTrue(retorno.Aprovada);
+            Assert.IsTrue(retorno!.Aprovada);
         }
 
         [TestMethod]
@@ -68,7 +68,7 @@ namespace PixApi.Tests
             var result = await _controller.ProcessarTransacao(transacao);
 
             var retorno = (result as OkObjectResult)?.Value as ResultadoTransacao;
-            Assert.IsTrue(retorno.Aprovada);
+            Assert.IsTrue(retorno!.Aprovada);
         }
 
         [TestMethod]
@@ -81,7 +81,7 @@ namespace PixApi.Tests
             var result = await _controller.ProcessarTransacao(transacao);
 
             var retorno = (result as OkObjectResult)?.Value as ResultadoTransacao;
-            Assert.IsTrue(retorno.Aprovada);
+            Assert.IsTrue(retorno!.Aprovada);
         }
 
         #endregion
