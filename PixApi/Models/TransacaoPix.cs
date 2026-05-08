@@ -5,10 +5,11 @@ namespace PixApi.Models;
  
 public class TransacaoPix
 {
-    [DynamoDBHashKey]
+
     [Required(ErrorMessage = "CPF é obrigatório.")]
     public string Cpf { get; set; } = string.Empty;
 
+    [DynamoDBHashKey]
     [Required(ErrorMessage = "Número da conta é obrigatório.")]
     public string NumeroConta { get; set; } = string.Empty;
 

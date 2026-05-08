@@ -4,8 +4,6 @@ using PixApi.Validations;
 
 namespace PixApi.Models;
 
-[DynamoDBTable("Conta")]
-
 public class Conta
 {
     [DynamoDBHashKey]
