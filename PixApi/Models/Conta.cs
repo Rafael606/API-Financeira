@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using Amazon.DynamoDBv2.DataModel;
+using PixApi.Validations;
 
 namespace PixApi.Models;
 
@@ -8,9 +9,7 @@ namespace PixApi.Models;
 public class Conta
 {
     [DynamoDBHashKey]
-    [Required(ErrorMessage = "CPF é obrigatório.")]
-    [StringLength(11, MinimumLength = 11, ErrorMessage = "CPF deve ter 11 dígitos.")]
-    [RegularExpression(@"^\d{11}$", ErrorMessage = "CPF deve conter apenas números.")]
+    [CpfValidation]
     public string Cpf { get; set; } = string.Empty;
 
     [RegularExpression(@"^\d+$", ErrorMessage = "Agência deve conter apenas números.")]
