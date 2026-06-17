@@ -2,8 +2,6 @@
 
 API RESTful desenvolvida em ASP.NET Core (.NET 8) para gerenciar contas bancárias e processar transações PIX com controle de limite, utilizando AWS DynamoDB Local para armazenamento de dados.
 
-Desenvolvido para: Teste Técnico BTG Pactual
-
 ---
 
 ## 1. Tecnologias Utilizadas
