@@ -1,5 +1,12 @@
 # PixApi - Sistema de Controle de Limite PIX
 
+![.NET](https://img.shields.io/badge/.NET_8-512BD4?style=flat&logo=dotnet&logoColor=white)
+![ASP.NET Core](https://img.shields.io/badge/ASP.NET_Core-5C2D91?style=flat&logo=dotnet&logoColor=white)
+![AWS DynamoDB](https://img.shields.io/badge/DynamoDB-4053D6?style=flat&logo=amazondynamodb&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-2496ED?style=flat&logo=docker&logoColor=white)
+![MSTest](https://img.shields.io/badge/MSTest-5C2D91?style=flat&logo=nunit&logoColor=white)
+![Moq](https://img.shields.io/badge/Moq-000000?style=flat&logo=nuget&logoColor=white)
+
 API RESTful desenvolvida em ASP.NET Core (.NET 8) para gerenciar contas bancárias e processar transações PIX com controle de limite, utilizando AWS DynamoDB Local para armazenamento de dados.
 
 ---
